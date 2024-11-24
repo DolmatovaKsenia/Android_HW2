@@ -19,6 +19,7 @@ class MainFragment : Fragment() {
     private lateinit var progressBar: ProgressBar
     private lateinit var errorLayout: LinearLayout
     private lateinit var retryButton: Button
+    private lateinit var loadMoreButton: Button
 
     private var isLoading = false
     private var hasError = false
@@ -34,6 +35,7 @@ class MainFragment : Fragment() {
         progressBar = view.findViewById(R.id.progressBar)
         errorLayout = view.findViewById(R.id.errorLayout)
         retryButton = view.findViewById(R.id.retryButton)
+        loadMoreButton = view.findViewById(R.id.loadMoreButton)
 
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
@@ -45,15 +47,32 @@ class MainFragment : Fragment() {
             foxAdapter.updateFoxes(foxImages)
         }
 
+        loadMoreButton.setOnClickListener {
+            loadMoreFoxes()
+        }
+
         retryButton.setOnClickListener {
+            hasError = false
             loadFoxImages()
         }
+
 
         if (foxImages.isEmpty()) {
             loadFoxImages()
         } else {
             foxAdapter.updateFoxes(foxImages)
         }
+
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                if (dy > 0) {
+                    loadMoreButton.visibility = View.GONE
+                } else if (dy < 0) {
+                    loadMoreButton.visibility = View.VISIBLE
+                }
+            }
+        })
 
         return view
     }
@@ -76,19 +95,26 @@ class MainFragment : Fragment() {
                     foxImages.add(foxData.image)
                 } else {
                     hasError = true
-                    showError()
                 }
-                if (foxImages.size == requests.size) {
+
+                if (requests.all { it.value != null || hasError }) {
                     isLoading = false
                     hideLoading()
                     if (!hasError) {
                         foxAdapter.updateFoxes(foxImages)
+                    } else {
+                        showError()
                     }
                 }
             }
         }
     }
 
+    private fun loadMoreFoxes() {
+        if (!isLoading) {
+            loadFoxImages()
+        }
+    }
     private fun showLoading() {
         progressBar.visibility = View.VISIBLE
         errorLayout.visibility = View.GONE

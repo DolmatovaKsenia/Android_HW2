@@ -3,4 +3,5 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="error_on_load">Ошибка загрузки данных!</string>
     <string name="retry_button">Повторить</string>
+    <string name="load_more">Загрузить еще лисичек</string>
 </resources>
